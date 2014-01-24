@@ -16,6 +16,7 @@ class SelectionSelector(QtGui.QGraphicsView):
         self.scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
 
         self.setScene(self.scene)
+        self.setWindowTitle("CakeShot")
 
         self.pixmap = QtGui.QPixmap(QtGui.QApplication.desktop().width(), QtGui.QApplication.desktop().height())
 
@@ -69,7 +70,9 @@ class SelectionSelector(QtGui.QGraphicsView):
                     self.mouse_down_last = False
                     self.hide()
 
-                    QtCore.QTimer.singleShot(100, self.send_final)
+                    settings = QtCore.QSettings()
+
+                    QtCore.QTimer.singleShot(int(settings.value("options/delay", 250)), self.send_final)
             self.draw_overlay()
         return False
 

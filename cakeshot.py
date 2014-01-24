@@ -1,10 +1,13 @@
 from PySide import QtCore, QtGui
 import sys
 import time
+import imguruploader
 import selectionselector
+import settings
 
 
 class CakeShot(QtGui.QSystemTrayIcon):
+    uploaders = [imguruploader.ImgurUploader]
     def __init__(self):
         QtGui.QSystemTrayIcon.__init__(self)
         self.setIcon(QtGui.QIcon("icon/cakeshot.png"))
@@ -12,6 +15,9 @@ class CakeShot(QtGui.QSystemTrayIcon):
         self.menu = QtGui.QMenu()
         self.take_screenshot_item = self.menu.addAction("Take Screenshot\tPlaceholder")
         self.take_screenshot_item.triggered.connect(self.take_screenshot)
+
+        self.open_settings_item = self.menu.addAction("Settings")
+        self.open_settings_item.triggered.connect(self.open_settings)
 
         self.setContextMenu(self.menu)
 
@@ -37,11 +43,32 @@ class CakeShot(QtGui.QSystemTrayIcon):
 
         screenshot = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId(), rect.x(), rect.y(), rect.width(),
                                               rect.height())
-        screenshot.save("C:/Users/Marvin/Dropbox/pix/" + str(int(time.time())) + ".png", "PNG")
+
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QBuffer.ReadWrite)
+        screenshot.save(buffer, "PNG")
+        buffer.seek(0)
+
+        data = buffer.data()
+
+        uploader = CakeShot.uploaders[QtCore.QSettings().value("options/uploaders/uploader")]()
+        try:
+            link = uploader.upload(data.data())
+            self.showMessage("Upload Complete!", link)
+            QtGui.QApplication.clipboard().setText(link)
+        except BaseException as e:
+            self.showMessage("An error occured :(", e.message, QtGui.QSystemTrayIcon.Critical)
+
+    def open_settings(self):
+        self.settings_window = settings.SettingsWindow()
 
 
 def main():
     app = QtGui.QApplication(sys.argv)
+    app.setApplicationName("CakeShot")
+    app.setApplicationVersion("1.0")
+    app.setOrganizationName("CrateMuncher")
+    app.setOrganizationDomain("cratemuncher.net")
     app.setWindowIcon(QtGui.QIcon("icon/cakeshot.png"))
     app.setQuitOnLastWindowClosed(False)
 
