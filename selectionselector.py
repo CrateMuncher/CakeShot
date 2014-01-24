@@ -43,6 +43,17 @@ class SelectionSelector(QtGui.QGraphicsView):
             to_pos = QtGui.QCursor.pos()
 
             painter.fillRect(QtCore.QRect(from_pos, to_pos), QtGui.QColor(0, 0, 0, 0))
+
+            txt = str(abs(from_pos.x() - to_pos.x())) + "x" + str(abs(from_pos.y() - to_pos.y()))
+
+            font = QtGui.QFont()
+            font.setStyleHint(QtGui.QFont.SansSerif)
+            font.setPointSize(32)
+            font.setBold(True)
+            painter.setFont(font)
+            painter.setPen(QtGui.QColor(127, 127, 127, 127))
+
+            painter.drawText(QtCore.QRect(from_pos, to_pos), QtCore.Qt.AlignVCenter | QtCore.Qt.AlignCenter, txt)
         self.pixmap_item.setPixmap(self.pixmap)
 
     def eventFilter(self, obj, evt): # I couldn't get normal events to work, so here's a workaround
@@ -56,9 +67,12 @@ class SelectionSelector(QtGui.QGraphicsView):
                 if self.mouse_down_last:
                     # Mouse up
                     self.mouse_down_last = False
-                    self.selection_made.emit(QtCore.QRect(self.origin, QtGui.QCursor.pos()))
-                    self.origin = None
                     self.hide()
-                    self.destroy()
+
+                    QtCore.QTimer.singleShot(100, self.send_final)
             self.draw_overlay()
         return False
+
+    def send_final(self): # Worst name ever
+        self.selection_made.emit(QtCore.QRect(self.origin, QtGui.QCursor.pos()))
+        self.destroy()
