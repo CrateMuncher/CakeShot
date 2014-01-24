@@ -51,7 +51,7 @@ class CakeShot(QtGui.QSystemTrayIcon):
 
         data = buffer.data()
 
-        uploader = CakeShot.uploaders[QtCore.QSettings().value("options/uploaders/uploader")]()
+        uploader = CakeShot.uploaders[QtCore.QSettings().value("options/uploaders/uploader", 0)]()
         try:
             link = uploader.upload(data.data())
             self.showMessage("Upload Complete!", link)
